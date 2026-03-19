@@ -1,6 +1,7 @@
 const canvas = document.getElementById("tetris");
 const context = canvas.getContext("2d");
 const scoreEl = document.getElementById("score");
+const linesEl = document.getElementById("lines");
 
 const COLS = 10;
 const ROWS = 20;
@@ -24,14 +25,55 @@ const player = {
   pos: { x: 0, y: 0 },
   matrix: null,
   score: 0,
+  lines: 0,
 };
+
+// ── Sound effects (Web Audio API) ──────────────────────────
+let audioCtx = null;
+function getAudio() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  return audioCtx;
+}
+
+function playDropSound() {
+  const ctx = getAudio();
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.connect(gain);
+  gain.connect(ctx.destination);
+  osc.frequency.setValueAtTime(160, ctx.currentTime);
+  osc.frequency.exponentialRampToValueAtTime(80, ctx.currentTime + 0.08);
+  gain.gain.setValueAtTime(0.25, ctx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.12);
+  osc.start();
+  osc.stop(ctx.currentTime + 0.12);
+}
+
+function playClearSound(lines) {
+  const ctx = getAudio();
+  const freqs = [330, 440, 550, 660];
+  freqs.slice(0, lines).forEach((freq, i) => {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = "square";
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    const t = ctx.currentTime + i * 0.06;
+    osc.frequency.setValueAtTime(freq, t);
+    osc.frequency.exponentialRampToValueAtTime(freq * 1.5, t + 0.15);
+    gain.gain.setValueAtTime(0.15, t);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.25);
+    osc.start(t);
+    osc.stop(t + 0.25);
+  });
+}
 
 let dropCounter = 0;
 let dropInterval = 800;
 let lastTime = 0;
 
 function arenaSweep() {
-  let rowCount = 1;
+  let cleared = 0;
   outer: for (let y = arena.length - 1; y > 0; --y) {
     for (let x = 0; x < arena[y].length; ++x) {
       if (arena[y][x] === 0) {
@@ -42,9 +84,14 @@ function arenaSweep() {
     const row = arena.splice(y, 1)[0].fill(0);
     arena.unshift(row);
     ++y;
+    cleared++;
+  }
 
-    player.score += rowCount * 10;
-    rowCount *= 2;
+  if (cleared > 0) {
+    const lineScores = [0, 100, 300, 500, 800];
+    player.score += lineScores[Math.min(cleared, 4)];
+    player.lines += cleared;
+    playClearSound(cleared);
   }
 }
 
@@ -135,16 +182,36 @@ function draw() {
   drawMatrix(player.matrix, player.pos);
 }
 
+function drawBlock(bx, by, color) {
+  const pad = 0.05;
+  const r = 0.14;
+  const w = 1 - pad * 2;
+
+  // Base rounded block
+  context.beginPath();
+  context.roundRect(bx + pad, by + pad, w, w, r);
+  context.fillStyle = color;
+  context.fill();
+
+  // Gradient overlay for 3D depth
+  const grad = context.createLinearGradient(bx, by, bx + 1, by + 1);
+  grad.addColorStop(0, "rgba(255,255,255,0.28)");
+  grad.addColorStop(1, "rgba(0,0,0,0.28)");
+  context.fillStyle = grad;
+  context.fill();
+
+  // Top-left shine
+  context.beginPath();
+  context.roundRect(bx + pad + 0.1, by + pad + 0.1, 0.3, 0.18, 0.06);
+  context.fillStyle = "rgba(255,255,255,0.45)";
+  context.fill();
+}
+
 function drawMatrix(matrix, offset) {
   matrix.forEach((row, y) => {
     row.forEach((value, x) => {
       if (value !== 0) {
-        context.fillStyle = colors[value];
-        context.fillRect(x + offset.x, y + offset.y, 1, 1);
-
-        context.strokeStyle = "rgba(10, 15, 25, 0.5)";
-        context.lineWidth = 0.05;
-        context.strokeRect(x + offset.x, y + offset.y, 1, 1);
+        drawBlock(x + offset.x, y + offset.y, colors[value]);
       }
     });
   });
@@ -165,6 +232,7 @@ function playerDrop() {
   if (collide(arena, player)) {
     player.pos.y--;
     merge(arena, player);
+    playDropSound();
     playerReset();
     arenaSweep();
     updateScore();
@@ -189,6 +257,7 @@ function playerReset() {
   if (collide(arena, player)) {
     arena.forEach((row) => row.fill(0));
     player.score = 0;
+    player.lines = 0;
     updateScore();
   }
 }
@@ -239,6 +308,7 @@ function update(time = 0) {
 
 function updateScore() {
   scoreEl.textContent = player.score;
+  linesEl.textContent = player.lines;
 }
 
 document.addEventListener("keydown", (event) => {
