@@ -14,11 +14,17 @@
       <aside class="panel">
         <p>Score: <span id="score">0</span></p>
         <p>Lines: <span id="lines">0</span></p>
+        <div class="btn-group">
+          <button id="pause-btn" onclick="togglePause()">Pause</button>
+          <button id="restart-btn" onclick="restartGame()">Restart</button>
+        </div>
         <p>Controls</p>
         <ul>
           <li>Left / Right: Move</li>
           <li>Down: Soft drop</li>
           <li>Q / W or Up: Rotate</li>
+          <li>P / Esc: Pause</li>
+          <li>R: Restart</li>
         </ul>
       </aside>
     </div>

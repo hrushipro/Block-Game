@@ -71,6 +71,8 @@ function playClearSound(lines) {
 let dropCounter = 0;
 let dropInterval = 800;
 let lastTime = 0;
+let isPaused = false;
+let animationId = null;
 
 function arenaSweep() {
   let cleared = 0;
@@ -180,6 +182,19 @@ function draw() {
 
   drawMatrix(arena, { x: 0, y: 0 });
   drawMatrix(player.matrix, player.pos);
+
+  if (isPaused) {
+    context.save();
+    context.scale(1 / BLOCK_SIZE, 1 / BLOCK_SIZE);
+    context.fillStyle = "rgba(0,0,0,0.55)";
+    context.fillRect(0, 0, canvas.width, canvas.height);
+    context.fillStyle = "#7dd3fc";
+    context.font = "bold 32px 'Trebuchet MS', sans-serif";
+    context.textAlign = "center";
+    context.textBaseline = "middle";
+    context.fillText("PAUSED", canvas.width / 2, canvas.height / 2);
+    context.restore();
+  }
 }
 
 function drawBlock(bx, by, color) {
@@ -294,16 +309,40 @@ function rotate(matrix, direction) {
 }
 
 function update(time = 0) {
-  const deltaTime = time - lastTime;
-  lastTime = time;
+  if (!isPaused) {
+    const deltaTime = time - lastTime;
+    lastTime = time;
 
-  dropCounter += deltaTime;
-  if (dropCounter > dropInterval) {
-    playerDrop();
+    dropCounter += deltaTime;
+    if (dropCounter > dropInterval) {
+      playerDrop();
+    }
   }
 
   draw();
-  requestAnimationFrame(update);
+  animationId = requestAnimationFrame(update);
+}
+
+function togglePause() {
+  isPaused = !isPaused;
+  if (!isPaused) {
+    lastTime = performance.now();
+  }
+  const btn = document.getElementById("pause-btn");
+  if (btn) btn.textContent = isPaused ? "Resume" : "Pause";
+}
+
+function restartGame() {
+  arena.forEach((row) => row.fill(0));
+  player.score = 0;
+  player.lines = 0;
+  isPaused = false;
+  lastTime = performance.now();
+  dropCounter = 0;
+  const btn = document.getElementById("pause-btn");
+  if (btn) btn.textContent = "Pause";
+  playerReset();
+  updateScore();
 }
 
 function updateScore() {
@@ -312,6 +351,15 @@ function updateScore() {
 }
 
 document.addEventListener("keydown", (event) => {
+  if (event.key === "p" || event.key === "P" || event.key === "Escape") {
+    togglePause();
+    return;
+  }
+  if (event.key === "r" || event.key === "R") {
+    restartGame();
+    return;
+  }
+  if (isPaused) return;
   if (event.key === "ArrowLeft") {
     playerMove(-1);
   } else if (event.key === "ArrowRight") {
@@ -338,8 +386,11 @@ if (typeof module !== "undefined") {
     merge,
     rotate,
     arenaSweep,
+    togglePause,
+    restartGame,
     arena,
     player,
     colors,
+    get isPaused() { return isPaused; },
   };
 }

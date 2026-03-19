@@ -25,6 +25,8 @@ const {
   merge,
   rotate,
   arenaSweep,
+  togglePause,
+  restartGame,
   arena,
   player,
   colors,
@@ -287,5 +289,63 @@ describe("colors palette", () => {
       expect(typeof c).toBe("string");
       expect(c).toMatch(/^#[0-9a-fA-F]{6}$/);
     });
+  });
+});
+
+// ── togglePause ───────────────────────────────────────────────────────────────
+describe("togglePause", () => {
+  const gameModule = require("../game.js");
+
+  beforeEach(() => {
+    // Ensure game is unpaused before each test
+    if (gameModule.isPaused) togglePause();
+  });
+
+  test("isPaused starts as false", () => {
+    expect(gameModule.isPaused).toBe(false);
+  });
+
+  test("togglePause sets isPaused to true", () => {
+    togglePause();
+    expect(gameModule.isPaused).toBe(true);
+  });
+
+  test("togglePause called twice returns isPaused to false", () => {
+    togglePause();
+    togglePause();
+    expect(gameModule.isPaused).toBe(false);
+  });
+});
+
+// ── restartGame ───────────────────────────────────────────────────────────────
+describe("restartGame", () => {
+  const gameModule = require("../game.js");
+
+  beforeEach(() => {
+    // dirty state: fill arena, set score/lines, pause
+    arena.forEach((row) => row.fill(1));
+    player.score = 9999;
+    player.lines = 42;
+    if (!gameModule.isPaused) togglePause();
+  });
+
+  test("restartGame clears the arena", () => {
+    restartGame();
+    expect(arena.every((row) => row.every((c) => c === 0))).toBe(true);
+  });
+
+  test("restartGame resets score to 0", () => {
+    restartGame();
+    expect(player.score).toBe(0);
+  });
+
+  test("restartGame resets lines to 0", () => {
+    restartGame();
+    expect(player.lines).toBe(0);
+  });
+
+  test("restartGame un-pauses the game", () => {
+    restartGame();
+    expect(gameModule.isPaused).toBe(false);
   });
 });
