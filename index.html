@@ -1,0 +1,33 @@
+#minitetri game
+
+## Request changes
+- Score for completed lines
+- Detailed blocks - gradient or rounded edges
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Minimal Tetris</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="layout">
+    <h1>Minimal Tetris</h1>
+    <div class="game-wrap">
+      <canvas id="tetris" width="240" height="480" aria-label="Tetris board"></canvas>
+      <aside class="panel">
+        <p>Score: <span id="score">0</span></p>
+        <p>Controls</p>
+        <ul>
+          <li>Left / Right: Move</li>
+          <li>Down: Soft drop</li>
+          <li>Q / W or Up: Rotate</li>
+        </ul>
+      </aside>
+    </div>
+  </main>
+  <script src="game.js"></script>
+</body>
+</html>
