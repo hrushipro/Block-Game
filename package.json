@@ -1,0 +1,34 @@
+{
+  "name": "block-game",
+  "version": "1.0.0",
+  "description": "A tiny browser-based Tetris implementation using plain HTML, CSS, and JavaScript.",
+  "main": "game.js",
+  "scripts": {
+    "test": "jest"
+  },
+  "jest": {
+    "testEnvironment": "jsdom",
+    "testMatch": [
+      "**/__tests__/**/*.test.js"
+    ],
+    "setupFiles": [
+      "./__tests__/setup.js"
+    ]
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hrushipro/Block-Game.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/hrushipro/Block-Game/issues"
+  },
+  "homepage": "https://github.com/hrushipro/Block-Game#readme",
+  "devDependencies": {
+    "jest": "^30.3.0",
+    "jest-environment-jsdom": "^30.3.0"
+  }
+}

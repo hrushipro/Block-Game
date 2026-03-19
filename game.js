@@ -328,3 +328,18 @@ document.addEventListener("keydown", (event) => {
 playerReset();
 updateScore();
 update();
+
+// Export pure functions for unit testing
+if (typeof module !== "undefined") {
+  module.exports = {
+    createMatrix,
+    createPiece,
+    collide,
+    merge,
+    rotate,
+    arenaSweep,
+    arena,
+    player,
+    colors,
+  };
+}
