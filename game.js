@@ -182,10 +182,17 @@ function draw() {
   drawMatrix(player.matrix, player.pos);
 }
 
+// Parse a "#rrggbb" hex colour into [r, g, b] integer components.
+function hexToRgb(hex) {
+  const n = parseInt(hex.slice(1), 16);
+  return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+}
+
 function drawBlock(bx, by, color) {
   const pad = 0.05;
   const r = 0.14;
   const w = 1 - pad * 2;
+  const [cr, cg, cb] = hexToRgb(color);
 
   // Base rounded block
   context.beginPath();
@@ -193,17 +200,31 @@ function drawBlock(bx, by, color) {
   context.fillStyle = color;
   context.fill();
 
-  // Gradient overlay for 3D depth
+  // Gradient overlay for 3D depth (top-left bright → bottom-right dark)
   const grad = context.createLinearGradient(bx, by, bx + 1, by + 1);
-  grad.addColorStop(0, "rgba(255,255,255,0.28)");
-  grad.addColorStop(1, "rgba(0,0,0,0.28)");
+  grad.addColorStop(0, "rgba(255,255,255,0.32)");
+  grad.addColorStop(0.5, "rgba(255,255,255,0.04)");
+  grad.addColorStop(1, "rgba(0,0,0,0.36)");
   context.fillStyle = grad;
   context.fill();
 
-  // Top-left shine
+  // Bottom-right shadow strip for extra depth
+  const shadowGrad = context.createLinearGradient(bx, by + 0.62, bx, by + 1);
+  shadowGrad.addColorStop(0, "rgba(0,0,0,0)");
+  shadowGrad.addColorStop(1, "rgba(0,0,0,0.32)");
+  context.fillStyle = shadowGrad;
+  context.fill();
+
+  // Border: a darker shade of the block colour so all blocks are visually
+  // separated from neighbours regardless of their hue.
+  context.strokeStyle = `rgba(${Math.max(0, cr - 65)},${Math.max(0, cg - 65)},${Math.max(0, cb - 65)},0.88)`;
+  context.lineWidth = 0.07;
+  context.stroke();
+
+  // Top-left shine highlight
   context.beginPath();
-  context.roundRect(bx + pad + 0.1, by + pad + 0.1, 0.3, 0.18, 0.06);
-  context.fillStyle = "rgba(255,255,255,0.45)";
+  context.roundRect(bx + pad + 0.08, by + pad + 0.08, 0.34, 0.17, 0.06);
+  context.fillStyle = "rgba(255,255,255,0.52)";
   context.fill();
 }
 
@@ -341,5 +362,6 @@ if (typeof module !== "undefined") {
     arena,
     player,
     colors,
+    hexToRgb,
   };
 }

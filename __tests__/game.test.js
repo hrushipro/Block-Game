@@ -28,6 +28,7 @@ const {
   arena,
   player,
   colors,
+  hexToRgb,
 } = require("../game.js");
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -270,6 +271,10 @@ describe("gradient block rendering (drawBlock)", () => {
   test("canvas fill is called for each block layer", () => {
     expect(global.__ctx2d.fill).toHaveBeenCalled();
   });
+
+  test("canvas stroke is called for the block border", () => {
+    expect(global.__ctx2d.stroke).toHaveBeenCalled();
+  });
 });
 
 // ── colors palette ────────────────────────────────────────────────────────────
@@ -286,6 +291,40 @@ describe("colors palette", () => {
     colors.slice(1).forEach((c) => {
       expect(typeof c).toBe("string");
       expect(c).toMatch(/^#[0-9a-fA-F]{6}$/);
+    });
+  });
+});
+
+// ── hexToRgb ──────────────────────────────────────────────────────────────────
+describe("hexToRgb", () => {
+  test("pure white #ffffff → [255, 255, 255]", () => {
+    expect(hexToRgb("#ffffff")).toEqual([255, 255, 255]);
+  });
+
+  test("pure black #000000 → [0, 0, 0]", () => {
+    expect(hexToRgb("#000000")).toEqual([0, 0, 0]);
+  });
+
+  test("pure red #ff0000 → [255, 0, 0]", () => {
+    expect(hexToRgb("#ff0000")).toEqual([255, 0, 0]);
+  });
+
+  test("pure green #00ff00 → [0, 255, 0]", () => {
+    expect(hexToRgb("#00ff00")).toEqual([0, 255, 0]);
+  });
+
+  test("pure blue #0000ff → [0, 0, 255]", () => {
+    expect(hexToRgb("#0000ff")).toEqual([0, 0, 255]);
+  });
+
+  test("each game colour parses to three integers in 0–255", () => {
+    colors.slice(1).forEach((hex) => {
+      const [r, g, b] = hexToRgb(hex);
+      [r, g, b].forEach((ch) => {
+        expect(ch).toBeGreaterThanOrEqual(0);
+        expect(ch).toBeLessThanOrEqual(255);
+        expect(Number.isInteger(ch)).toBe(true);
+      });
     });
   });
 });

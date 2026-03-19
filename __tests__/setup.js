@@ -53,7 +53,10 @@ const ctx2d = {
   beginPath: jest.fn(),
   roundRect: jest.fn(),
   createLinearGradient: jest.fn(() => new FakeGradient()),
+  stroke: jest.fn(),
   fillStyle: "",
+  strokeStyle: "",
+  lineWidth: 0,
 };
 
 HTMLCanvasElement.prototype.getContext = jest.fn(() => ctx2d);
